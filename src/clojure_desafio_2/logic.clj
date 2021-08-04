@@ -46,6 +46,18 @@
   [inicial final compras]
   (filter #(calcular-mes inicial final %) compras))
 
+(defn adicionar-compra
+  [compra lista-de-compras]
+  (conj lista-de-compras compra))
+
+;quando tentei redefinir a lista do banco que está presente em outro namespace, deu erro, por conta disso foi criado um novo simbolo
+;pra comportar a lista de compras
+(println "\n\n\n atribuição a uma nova lista de uma nova compra")
+(println w.db/compras)
+(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 30), :valor 50, :estabelecimento "Cinemark", :categoria "Cinema"} w.db/compras))
+(println lista-de-compras)
+(println "\n\n\n")
+
 (println "O total das compras referente a categoria vestuário é de:"        (somatorio-total lista-vestuario))
 (println "\nO total das compras referente a categoria restaurante é de:"    (somatorio-total lista-restaurante))
 (println "\nO total das compras referente fatura é de:"                     (somatorio-total w.db/compras))
