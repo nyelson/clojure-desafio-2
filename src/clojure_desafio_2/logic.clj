@@ -50,13 +50,17 @@
   [compra lista-de-compras]
   (def lista-de-compras (conj lista-de-compras compra)))
 
-(println "\n\n\n atribuição a uma nova lista de uma nova compra")
+(println "\n\n\natribuição a uma nova lista de uma nova compra")
 (println w.db/compras)
 
 (def lista-de-compras w.db/compras)
-(adicionar-compra {:data (local-date-time 2021 12 30), :valor 50, :estabelecimento "Cinemark", :categoria "Cinema"} lista-de-compras)
-(adicionar-compra {:data (local-date-time 2021 12 27), :valor 5, :estabelecimento "Padaria", :categoria "Alimentos"} lista-de-compras)
-(adicionar-compra {:data (local-date-time 2021 12 25), :valor 70, :estabelecimento "Boliche", :categoria "Aleatório"} lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas",       :categoria "Vestuário"   } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 10 21), :valor 250,  :estabelecimento "Adidas",       :categoria "Vestuário"   } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 03 13), :valor 40,   :estabelecimento "Burguer King", :categoria "Restaurante" } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 05 29), :valor 300,  :estabelecimento "Nike",         :categoria "Vestuário"   } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 12 30), :valor 50,   :estabelecimento "Cinemark",     :categoria "Cinema"      } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 12 27), :valor 5,    :estabelecimento "Padaria",      :categoria "Alimentos"   } lista-de-compras)
+(adicionar-compra {:data (local-date-time 2021 12 25), :valor 70,   :estabelecimento "Boliche",      :categoria "Aleatório"   } lista-de-compras)
 (println lista-de-compras)
 
 (println "\n\n\n")
