@@ -28,7 +28,6 @@
 (def lista-vestuario        (retorna-simbolo-por-categoria compras-categorizadas "Vestuário"  ))
 (def lista-restaurante      (retorna-simbolo-por-categoria compras-categorizadas "Restaurante"))
 
-
 (defn compras-por-estabelecimento-ou-valor
   [coluna filtro compra]
   (= filtro (coluna compra)))
@@ -37,8 +36,15 @@
   [coluna filtro compras]
   (filter #(compras-por-estabelecimento-ou-valor coluna filtro %) compras))
 
+(defn calcular-mes
+  [inicial final compra]
+  (println inicial final compra)
+  (and (after? final (:data compra))
+       (before? inicial (:data compra))))
 
-
+(defn filtrando-compras-mes
+  [inicial final compras]
+  (filter #(calcular-mes inicial final %) compras))
 
 (println "O total das compras referente a categoria vestuário é de:"        (somatorio-total lista-vestuario))
 (println "\nO total das compras referente a categoria restaurante é de:"    (somatorio-total lista-restaurante))
@@ -59,16 +65,6 @@
                                                                       (filtrando-compras :estabelecimento "Burguer King")))
 (println "\nRetornando o valor das comprana nike:"                    (->>  w.db/compras
                                                                       (filtrando-compras :estabelecimento "Nike")))
-
-(defn calcular-mes
-  [inicial final compra]
-  (println inicial final compra)
-  (and (after? final (:data compra))
-       (before? inicial (:data compra))))
-
-(defn filtrando-compras-mes
-  [inicial final compras]
-  (filter #(calcular-mes inicial final %) compras))
 
 (println "\nRetornando o valor do extrato no intervalo:" (->>  w.db/compras
               ( filtrando-compras-mes (local-date-time 2021 01 01 9 00) (local-date-time 2021 07 01 9 00)) somatorio-total))
