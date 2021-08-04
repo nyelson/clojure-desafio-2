@@ -3,8 +3,7 @@
 
 (use 'java-time)
 
-(println "Início do projeto - Core")
-(println "\n")
+(println "Início do projeto - Core\n")
 
 (def lista-de-compras w.db/compras)
 (def lista-de-cartoes w.db/cartao)
@@ -44,18 +43,42 @@
   (filter #(calcular-mes inicial final %) compras))
 
 (defn adicionar-compra
+  "Adiciona uma compra na lista de compras"
   [compra lista-de-compras]
   (conj lista-de-compras compra))
 
-;(println "\nAssociando os objetos:" (assoc-in w.db/cliente [:cartaoRef] (assoc-in w.db/cartao [:comprasRef] lista-de-compras)))
+(defn adicionar-cliente
+  "Adiciona um cliente na lista de clientes"
+  [cliente lista-de-clientes]
+  (conj lista-de-clientes cliente))
 
-;(def lista-de-cartoes (assoc-in lista-de-cartoes [:comprasRef] lista-de-compras))
-;(conj lista-de-cartoes lista-de-compras)
-;(def lista-de-cartoes)
-;(println (assoc-in lista-de-cartoes [:comprasRef] lista-de-compras))
+(defn adicionar-cartao
+  "Adiciona um cartão na lista de cartões"
+  [cartao lista-de-cartoes]
+  (conj lista-de-cartoes cartao))
 
-(println "\n\n\natribuição a uma nova lista de uma nova compra")
+(defn seleciona-um-cartao
+  "Seleciona UM cartão no conjunto e variedades de cartões, pegando pelo número do cartão - que é único"
+  [cartao lista-de-cartoes]
+  (filterv #(= cartao (:numero %)) lista-de-cartoes))
 
+(defn seleciona-um-cliente
+  "Seleciona UM cliente no conjunto e variedades de clientes, pegando pelo número do cpf - que é único"
+  [cliente lista-de-clientes]
+  (filterv #(= cliente (:cpf %)) lista-de-clientes))
+
+(println "\nDefinindo listas de clientes, cartões e de compras - antes da associação")
+; Adicionando dois clientes na lista de clientes, dados mockados e não validados - por enquanto
+; TO-DO: Colocar no formato de schema
+(def lista-de-clientes (adicionar-cliente {:nome "Nyelson Barbosa", :cpf "22667862023", :email "nyelson.barbosa@nubank.com.br"} lista-de-clientes))
+(def lista-de-clientes (adicionar-cliente {:nome "Icaro Rios",      :cpf "32257409000", :email "icaro.rios@nubank.com.br"     } lista-de-clientes))
+
+; Adicionando um cartão, sem associação a um cliente em específico e não validado - por enquanto
+; TO-DO: Colocar no formato de schema
+(def lista-de-cartoes (adicionar-cartao {:numero "5410133996442556", :cvv "984", :validade (local-date-time 2022 10 20), :limite 10000} lista-de-cartoes))
+
+; Adicionando sete compras na lista de compras, para ser associada a algum cartão posteriormente, mas sem validações - por enquanto
+; TO-DO: Colocar no formato de schema
 (def lista-de-compras (adicionar-compra {:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas",       :categoria "Vestuário"   } lista-de-compras))
 (def lista-de-compras (adicionar-compra {:data (local-date-time 2021 10 21), :valor 250,  :estabelecimento "Adidas",       :categoria "Vestuário"   } lista-de-compras))
 (def lista-de-compras (adicionar-compra {:data (local-date-time 2021 03 13), :valor 40,   :estabelecimento "Burguer King", :categoria "Restaurante" } lista-de-compras))
@@ -64,71 +87,64 @@
 (def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 27), :valor 5,    :estabelecimento "Padaria",      :categoria "Alimentos"   } lista-de-compras))
 (def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 25), :valor 70,   :estabelecimento "Boliche",      :categoria "Aleatório"   } lista-de-compras))
 
-(def lista-de-cartoes (assoc-in lista-de-cartoes [:comprasRef] lista-de-compras))
-(def lista-de-clientes (assoc-in lista-de-clientes [:cartaoRef] lista-de-cartoes))
+(println "Lista de clientes:" lista-de-clientes)
+(println "Lista de cartões:" lista-de-cartoes)
+(println "Lista de compras:" lista-de-compras)
+(println "\n\n")
 
-(println lista-de-cartoes)
-(println lista-de-clientes)
+(println "Peguei o cartão:" (seleciona-um-cartao "5410133996442556" lista-de-cartoes))
+(def cartao (get (seleciona-um-cartao "5410133996442556" lista-de-cartoes) 0))
 
-;{:nome Nyelson, :cpf 22667862023, :email nyelson.barbosa@nubank.com.br,
-;   :cartaoRef {:numero 5410133996442556, :cvv 984, :validade #object[java.time.LocalDateTime 0x133f86bc 2022-10-20T00:00], :limite 10000,
-;     :comprasRef [{:data #object[java.time.LocalDateTime 0x21a66db1 2021-10-20T00:00], :valor 1000, :estabelecimento Adidas, :categoria Vestuário}
-;                  {:data #object[java.time.LocalDateTime 0x4526d37d 2021-10-21T00:00], :valor 250, :estabelecimento Adidas, :categoria Vestuário}
-;                  {:data #object[java.time.LocalDateTime 0x3e01d372 2021-03-13T00:00], :valor 40, :estabelecimento Burguer King, :categoria Restaurante}
-;                  {:data #object[java.time.LocalDateTime 0x10cdaee8 2021-05-29T00:00], :valor 300, :estabelecimento Nike, :categoria Vestuário}
-;                  {:data #object[java.time.LocalDateTime 0x29482a5 2021-12-30T00:00], :valor 50, :estabelecimento Cinemark, :categoria Cinema}
-; {:data #object[java.time.LocalDateTime 0x715a14b1 2021-12-27T00:00], :valor 5, :estabelecimento Padaria, :categoria Alimentos} {:data #object[java.time.LocalDateTime 0x41f0d3ab 2021-12-25T00:00], :valor 70, :estabelecimento Boliche, :categoria Aleatório}]}}
+; Foi utilizado o get cartão 0, para pegar o mapa referente ao cartão filtrado
+(println "Associando as compras no cartão pego" (assoc-in cartao [:comprasRef] lista-de-compras))
+(def cartao (assoc-in cartao [:comprasRef] lista-de-compras))
 
-;(defn lista-compras-por-cliente
-;  [cpf-cliente lista-de-clientes]
-;  (->> lista-de-clientes
-;            (:cpf cpf-cliente)))
-;
-;(println "Usuario:" (lista-compras-por-cliente "0" lista-de-clientes))
 
-;#(= "22667862023" (:cpf %)
+(println "\n\nO cliente pesquisado foi:" (seleciona-um-cliente "22667862023" lista-de-clientes))
+(def cliente (get (seleciona-um-cliente "22667862023" lista-de-clientes) 0))
 
-;(defn compara-cpf
-;  [cpf cliente]
-;  (println cliente)
-;  (= cpf (:cpf cliente)))
-;
-;;(println (filter #(compara-cpf "22667862023" %) lista-de-clientes))
-;(println (->> lista-de-clientes
-;              (filter #(compara-cpf 22667862023 %))))
+; Foi utilizada a mesma lógica do cartão para retornar o único cliente no vetor de cliente
+(println "Associando o cartão ao cliente" (assoc-in cliente [:cartaoRef] cartao))
+(def cliente (assoc-in cliente [:cartaoRef] cartao))
 
 
 
 
 
+
+
+
+
+; ====================================================================================================================
+; ====================================================================================================================
+; ====================================================================================================================
+; Verificar se faz sentido o restante do código abaixo - ou se será refatorado como o acima
 ;acho estranho a funcao já dizer que vai usar esta lista de compras na definição dela, se eu quiser utilizar outra
 ; não consigo
-;(def compras-categorizadas (agrupa-categorias lista-de-compras))
-;(def lista-vestuario (retorna-simbolo-por-categoria compras-categorizadas "Vestuário"))
-;(def lista-restaurante (retorna-simbolo-por-categoria compras-categorizadas "Restaurante"))
-;
-;(println lista-de-compras)
-;(println "\n\n\n")
-;
-;(println "O total das compras referente a categoria vestuário é de:" (somatorio-total lista-vestuario))
-;(println "\nO total das compras referente a categoria restaurante é de:" (somatorio-total lista-restaurante))
-;(println "\nO total das compras é de:" (somatorio-total lista-de-compras))
-;
-;(println "\nAssociando os objetos:" (assoc-in w.db/cliente [:cartaoRef] (assoc-in w.db/cartao [:comprasRef] lista-de-compras)))
-;
-;(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
-;                                                                      (filtrando-compras :valor 40)))
-;(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
-;                                                                      (filtrando-compras :valor 1000)))
-;(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
-;                                                                      (filtrando-compras :valor 300)))
-;
-;(println "\nRetornando o valor das compra no estabelecimento adidas:" (->> lista-de-compras
-;                                                                           (filtrando-compras :estabelecimento "Adidas")))
-;(println "\nRetornando o valor das compras no BK:" (->> lista-de-compras
-;                                                        (filtrando-compras :estabelecimento "Burguer King")))
-;(println "\nRetornando o valor das comprana nike:" (->> lista-de-compras
-;                                                        (filtrando-compras :estabelecimento "Nike")))
-;
-;(println "\nRetornando o valor do extrato no intervalo:" (->> lista-de-compras
-;                                                              (filtrando-compras-mes (local-date-time 2021 01 01 9 00) (local-date-time 2021 07 01 9 00)) somatorio-total))
+(def compras-categorizadas  (agrupa-categorias lista-de-compras))
+(def lista-vestuario        (retorna-simbolo-por-categoria compras-categorizadas "Vestuário"))
+(def lista-restaurante      (retorna-simbolo-por-categoria compras-categorizadas "Restaurante"))
+
+(println "O total das compras referente a categoria vestuário é de:"      (somatorio-total lista-vestuario))
+(println "\nO total das compras referente a categoria restaurante é de:"  (somatorio-total lista-restaurante))
+(println "\nO total das compras é de:"                                    (somatorio-total lista-de-compras))
+
+
+(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
+                                                                      (filtrando-compras :valor 40)))
+(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
+                                                                      (filtrando-compras :valor 1000)))
+(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
+                                                                      (filtrando-compras :valor 300)))
+
+
+(println "\nRetornando o valor das compra na Adidas:" (->> lista-de-compras
+                                                           (filtrando-compras :estabelecimento "Adidas")))
+(println "\nRetornando o valor das compras no BK:"    (->> lista-de-compras
+                                                           (filtrando-compras :estabelecimento "Burguer King")))
+(println "\nRetornando o valor das compra na Nike:"   (->> lista-de-compras
+                                                           (filtrando-compras :estabelecimento "Nike")))
+
+
+(println "\nRetornando o valor do extrato no intervalo:" (->> lista-de-compras
+                                                              (filtrando-compras-mes (local-date-time 2021 01 01 9 00) (local-date-time 2021 07 01 9 00)) somatorio-total))
