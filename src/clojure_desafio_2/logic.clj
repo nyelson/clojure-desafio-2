@@ -67,6 +67,11 @@
   [cliente lista-de-clientes]
   (filterv #(= cliente (:cpf %)) lista-de-clientes))
 
+(defn lista-compras-por-cliente
+  "Retorna lista de compras de acordo com o cliente passado por parâmetro"
+  [cliente]
+  (get (-> cliente :cartaoRef) :comprasRef))
+
 (println "\nDefinindo listas de clientes, cartões e de compras - antes da associação")
 ; Adicionando dois clientes na lista de clientes, dados mockados e não validados - por enquanto
 ; TO-DO: Colocar no formato de schema
@@ -107,44 +112,30 @@
 (println "Associando o cartão ao cliente" (assoc-in cliente [:cartaoRef] cartao))
 (def cliente (assoc-in cliente [:cartaoRef] cartao))
 
+(println "Listando compras do cliente:" (lista-compras-por-cliente  cliente))
 
-
-
-
-
-
-
-
-; ====================================================================================================================
-; ====================================================================================================================
-; ====================================================================================================================
-; Verificar se faz sentido o restante do código abaixo - ou se será refatorado como o acima
-;acho estranho a funcao já dizer que vai usar esta lista de compras na definição dela, se eu quiser utilizar outra
-; não consigo
-(def compras-categorizadas  (agrupa-categorias lista-de-compras))
-(def lista-vestuario        (retorna-simbolo-por-categoria compras-categorizadas "Vestuário"))
-(def lista-restaurante      (retorna-simbolo-por-categoria compras-categorizadas "Restaurante"))
-
-(println "O total das compras referente a categoria vestuário é de:"      (somatorio-total lista-vestuario))
-(println "\nO total das compras referente a categoria restaurante é de:"  (somatorio-total lista-restaurante))
-(println "\nO total das compras é de:"                                    (somatorio-total lista-de-compras))
+(println "\nO total das compras referente a categoria vestuário é de:"  (somatorio-total (retorna-simbolo-por-categoria (agrupa-categorias lista-de-compras) "Vestuário")))
+(println "O total das compras referente a categoria restaurante é de:"  (somatorio-total (retorna-simbolo-por-categoria (agrupa-categorias lista-de-compras) "Restaurante")))
+(println "O total das compras é de:"                                    (somatorio-total lista-de-compras))
 
 
 (println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
                                                                       (filtrando-compras :valor 40)))
-(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
+
+(println "Retornando o valor das comprar com o valor de 1000:"   (->> lista-de-compras
                                                                       (filtrando-compras :valor 1000)))
-(println "\nRetornando o valor das comprar com o valor de 1000:" (->> lista-de-compras
+
+(println "Retornando o valor das comprar com o valor de 1000:"   (->> lista-de-compras
                                                                       (filtrando-compras :valor 300)))
 
+(println "\nRetornando o valor das compra na Adidas:"            (->> lista-de-compras
+                                                                      (filtrando-compras :estabelecimento "Adidas")))
 
-(println "\nRetornando o valor das compra na Adidas:" (->> lista-de-compras
-                                                           (filtrando-compras :estabelecimento "Adidas")))
-(println "\nRetornando o valor das compras no BK:"    (->> lista-de-compras
-                                                           (filtrando-compras :estabelecimento "Burguer King")))
-(println "\nRetornando o valor das compra na Nike:"   (->> lista-de-compras
-                                                           (filtrando-compras :estabelecimento "Nike")))
+(println "Retornando o valor das compras no BK:"                 (->> lista-de-compras
+                                                                      (filtrando-compras :estabelecimento "Burguer King")))
 
+(println "Retornando o valor das compra na Nike:"                (->> lista-de-compras
+                                                                      (filtrando-compras :estabelecimento "Nike")))
 
-(println "\nRetornando o valor do extrato no intervalo:" (->> lista-de-compras
-                                                              (filtrando-compras-mes (local-date-time 2021 01 01 9 00) (local-date-time 2021 07 01 9 00)) somatorio-total))
+(println "\nRetornando o valor do extrato no intervalo:"         (->> lista-de-compras
+                                                                      (filtrando-compras-mes (local-date-time 2021 01 01 9 00) (local-date-time 2021 07 01 9 00)) somatorio-total))
