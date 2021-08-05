@@ -23,3 +23,13 @@
                                         lista-de-compras))]
       (is (and (= 1000 (:valor compra)) (= "Adidas" (:estabelecimento compra)) (= "Vestuário" (:categoria compra)))))
     ))
+
+(deftest listar-compras-por-cliente-test
+  (testing "Testando método de listar compras por cliente"
+    (is (= [{:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas", :categoria "Vestuário" }]
+           (lista-compras-por-cliente cliente)))
+
+    (is (= 1
+           (count (lista-compras-por-cliente cliente))))
+
+    (is (nil? (lista-compras-por-cliente cliente2)))))
