@@ -1,7 +1,9 @@
-(ns clojure-desafio-2.logic
-  (:require [clojure-desafio-2.credit-card :as w.db]))
+(ns clojure-desafio-2.logic)
 
-(use 'java-time)
+(use '[java-time :exclude [contains? iterate range min format zero? max]])
+(use '[clojure.pprint :exclude [formatter]])
+
+(defn uuid [] (java.util.UUID/randomUUID))
 
 (defn agrupa-categorias
   "Agrupa e retorna uma lista de acordo com a categoria"
@@ -38,18 +40,54 @@
 
 (defn adicionar-compra
   "Adiciona uma compra na lista de compras"
-  [compra lista]
-  (conj lista compra))
+  ([compra lista]
+   (conj lista compra))
+
+  ([data valor estabelecimento categoria]
+   {:transacao/id              (uuid)
+    :transacao/data            data
+    :transacao/valor           valor
+    :transacao/estabelecimento estabelecimento
+    :transacao/categoria       categoria}))
 
 (defn adicionar-cliente
   "Adiciona um cliente na lista de clientes"
-  [cliente lista]
-  (conj lista cliente))
+  ([cliente lista]
+   (conj lista cliente))
+
+  ([nome cpf email]
+   (adicionar-cliente (uuid) nome cpf email))
+
+  ([uuid nome cpf email]
+   {:cliente/id    uuid
+    :cliente/nome  nome
+    :cliente/cpf   cpf
+    :cliente/email email})
+
+  ([uuid nome cpf email cartao]
+   {:cliente/id     uuid
+    :cliente/nome   nome
+    :cliente/cpf    cpf
+    :cliente/email  email
+    :cliente/cartao cartao}))
 
 (defn adicionar-cartao
   "Adiciona um cartão na lista de cartões"
-  [cartao lista]
-  (conj lista cartao))
+  ([cartao lista]
+   (conj lista cartao))
+
+  ([numero cvv validade limite]
+   {:cartao/numero   numero
+    :cartao/cvv      cvv
+    :cartao/validade validade
+    :cartao/limite   limite})
+
+  ([numero cvv validade limite transacao]
+   {:cartao/numero    numero
+    :cartao/cvv       cvv
+    :cartao/validade  validade
+    :cartao/limite    limite
+    :cartao/transacao transacao}))
 
 (defn seleciona-um-cartao
   "Seleciona UM cartão no conjunto e variedades de cartões, pegando pelo número do cartão - que é único"
@@ -65,33 +103,3 @@
   "Retorna lista de compras de acordo com o cliente passado por parâmetro"
   [cliente]
   (get (-> cliente :cartaoRef) :comprasRef))
-
-; Definindo listas de clientes, cartões e de compras - antes da associação
-; Adicionando dois clientes na lista de clientes, dados mockados e não validados - por enquanto
-; TO-DO: Colocar no formato de schema
-
-
-;(def lista-de-clientes (adicionar-cliente {:nome "Nyelson Barbosa", :cpf "22667862023", :email "nyelson.barbosa@nubank.com.br"} []))
-;(def lista-de-clientes (adicionar-cliente {:nome "Icaro Rios",      :cpf "32257409000", :email "icaro.rios@nubank.com.br"     } lista-de-clientes))
-
-; Adicionando um cartão, sem associação a um cliente em específico e não validado - por enquanto
-; TO-DO: Colocar no formato de schema
-;(def lista-de-cartoes (adicionar-cartao {:numero "5410133996442556", :cvv "984", :validade (local-date-time 2022 10 20), :limite 10000} []))
-;(def lista-de-cartoes (adicionar-cartao {:numero "5459268200059002", :cvv "737", :validade (local-date-time 2023 05 05), :limite 10000} lista-de-cartoes))
-
-; Adicionando sete compras na lista de compras, para ser associada a algum cartão posteriormente, mas sem validações - por enquanto
-; TO-DO: Colocar no formato de schema
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas",       :categoria "Vestuário"   } []))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 10 21), :valor 250,  :estabelecimento "Adidas",       :categoria "Vestuário"   } lista-de-compras))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 03 13), :valor 40,   :estabelecimento "Burguer King", :categoria "Restaurante" } lista-de-compras))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 05 29), :valor 300,  :estabelecimento "Nike",         :categoria "Vestuário"   } lista-de-compras))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 30), :valor 50,   :estabelecimento "Cinemark",     :categoria "Cinema"      } lista-de-compras))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 27), :valor 5,    :estabelecimento "Padaria",      :categoria "Alimentos"   } lista-de-compras))
-;(def lista-de-compras (adicionar-compra {:data (local-date-time 2021 12 25), :valor 70,   :estabelecimento "Boliche",      :categoria "Aleatório"   } lista-de-compras))
-;(def cartao (get (seleciona-um-cartao "5410133996442556" lista-de-cartoes) 0))
-;(def cartao (assoc-in cartao [:comprasRef] lista-de-compras))
-;(def cliente (get (seleciona-um-cliente "22667862023" lista-de-clientes) 0))
-;(def cliente (assoc-in cliente [:cartaoRef] cartao))
-;(def cartao2 (get (seleciona-um-cartao "5459268200059002" lista-de-cartoes) 0))
-;(def cliente2 (get (seleciona-um-cliente "32257409000" lista-de-clientes) 0))
-;(def cliente2 (assoc-in cliente2 [:cartaoRef] cartao2))
