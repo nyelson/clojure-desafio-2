@@ -237,7 +237,7 @@
                              :db/id))
 (println "O id do primeiro cliente é" primeiro-cliente-id)
 
-(pprint (adiciona-cartao! conn primeiro-cliente-id cartao))
+(pprint (adiciona-cartao! conn primeiro-cliente-id [cartao]))
 
 (def cartoes (todos-os-cartoes (d/db conn)))
 (def primeiro-cartao-id (-> cartoes
