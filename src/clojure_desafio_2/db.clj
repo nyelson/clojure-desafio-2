@@ -129,7 +129,6 @@
 ;(d/delete-database db-uri)
 (d/create-database db-uri)
 (def conn (d/connect db-uri))
-(pprint conn)
 
 (d/transact conn schema)
 
@@ -145,6 +144,11 @@
   (let [resultado @(d/transact conn cartao)
         cartao-id (first (vals (:tempids resultado)))]
     (d/transact conn [[:db/add id-cliente :cliente/cartao cartao-id]])))
+
+(defn adiciona-transacao! [conn id-cartao transacao]
+  (let [resultado @(d/transact conn transacao)
+        transacao-id (first (vals (:tempids resultado)))]
+    (d/transact conn [[:db/add id-cartao :cartao/transacao transacao-id]])))
 
 (defn todos-os-clientes [db]
   (d/q '[:find (pull ?cliente [*])
@@ -181,21 +185,7 @@
     :cliente/email  email
     :cliente/cartao cartao}))
 
-;([nome cpf email]
-; (novo-cliente (uuid) nome cpf email))
-;
-;; usar ids que ja foram criados antes
-;([uuid nome cpf email]
-; {:cliente/id    uuid
-;  :cliente/nome  nome
-;  :cliente/cpf   cpf
-;  :cliente/email email}
-
 (defn novo-cartao
-  ;; gerar ids dinamicamente
-  ;([numero cvv validade limite transacao]
-  ; (novo-cartao numero cvv validade limite transacao))
-
   ; usar ids que ja foram criados antes
   ([numero cvv validade limite transacao]
    {:cartao/numero    numero
@@ -204,9 +194,6 @@
     :cartao/limite    limite
     :cartao/transacao transacao})
 
-  ;([numero cvv validade limite]
-  ; (novo-cartao numero cvv validade limite))
-
   ; usar ids que ja foram criados antes
   ([numero cvv validade limite]
    {:cartao/numero   numero
@@ -214,41 +201,35 @@
     :cartao/validade validade
     :cartao/limite   limite}))
 
-;{:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas",       :categoria "Vestuário"   }
 (defn nova-transacao
   ([data valor estabelecimento categoria]
-   {:transacao/id              cartao
-    :transacao/data            data
+   {:transacao/data            data
     :transacao/valor           valor
     :transacao/estabelecimento estabelecimento
     :transacao/categoria       categoria}))
+
+; Uma forma de selecionar o cliente pelo CPF do cliente
+(defn um-cliente [db cliente-cpf]
+  (d/pull db '[*] [:cliente/cpf cliente-cpf]))
+
+; Uma forma de seleciona o cartao pelo número do cartão
+(defn um-cartao [db numero-cartao]
+  (d/pull db '[*] [:cartao/numero numero-cartao]))
 
 
 (def cliente (novo-cliente (uuid), "Nyelson Barbosa", "22667862023", "nyelson.barbosa@nubank.com.br"))
 (def cartao (novo-cartao "5410133996442556", "984", (sql-date (local-date-time 2022 10 20)), 10000.00M))
 (def transacao (nova-transacao (sql-date (local-date-time 2021 03 12)), 100.00M, "Adidas", "Vestuário"))
 
-(pprint @(adiciona-clientes! conn [cliente, cartao]))
 
-(def clientes (todos-os-clientes (d/db conn)))
-(def primeiro-cliente-id (-> clientes
-                             first
-                             first
-                             :db/id))
-(println "O id do primeiro cliente é" primeiro-cliente-id)
-
-(pprint (adiciona-cartao! conn primeiro-cliente-id [cartao]))
-
-(def cartoes (todos-os-cartoes (d/db conn)))
-(def primeiro-cartao-id (-> cartoes
-                             first
-                             first
-                             :db/id))
-(println "O id do primeiro cartao é" primeiro-cartao-id)
-
+(pprint (adiciona-clientes! conn [cliente]))
+(pprint (adiciona-cartao! conn (-> (um-cliente (d/db conn) (-> cliente :cliente/cpf))
+                                   :db/id) [cartao]))
+(pprint (adiciona-transacao! conn (-> (um-cartao (d/db conn) (-> cartao :cartao/numero))
+                                   :db/id) [transacao]))
 
 
 (pprint (todos-os-clientes (d/db conn)))
-;(pprint (todos-os-cartoes (d/db conn)))
-;(pprint (todos-as-transacoes (d/db conn)))
-(d/delete-database db-uri)
+(pprint (todos-os-cartoes (d/db conn)))
+(pprint (todos-as-transacoes (d/db conn)))
+;(d/delete-database db-uri)
