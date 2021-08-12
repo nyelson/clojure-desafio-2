@@ -1,6 +1,7 @@
 (ns clojure-desafio-2.db
-  (:require [datomic.api :as d])
-  (:use java-time))
+  (:require [datomic.api :as d]
+            [java-time]
+            [clojure.pprint]))
 
 
 (def schema [
@@ -24,6 +25,7 @@
               :db/ident       :cliente/cpf
               :db/valueType   :db.type/string
               :db/cardinality :db.cardinality/one
+              :db/unique      :db.unique/identity
               :db/doc         "O CPF do cliente"
               }
 
@@ -76,7 +78,7 @@
 
              {
               :db/ident       :cartao/transacao
-              :db/valueType   :db.type/uuid
+              :db/valueType   :db.type/ref
               :db/cardinality :db.cardinality/many
               :db/doc         "A transação relacionada ao cartão"
               }
@@ -139,9 +141,24 @@
 (defn adiciona-clientes! [conn clientes]
   (d/transact conn clientes))
 
+(defn adiciona-cartao! [conn id-cliente cartao]
+  (let [resultado @(d/transact conn cartao)
+        cartao-id (first (vals (:tempids resultado)))]
+    (d/transact conn [[:db/add id-cliente :cliente/cartao cartao-id]])))
+
 (defn todos-os-clientes [db]
-  (d/q '[:find (pull ?cliente [* {:cliente/cartao [*]}])
-         :where [?cliente :cliente/nome]]
+  (d/q '[:find (pull ?cliente [*])
+         :where [?cliente :cliente/id]]
+       db))
+
+(defn todos-os-cartoes [db]
+  (d/q '[:find (pull ?cartao [*])
+         :where [?cartao :cartao/numero]]
+       db))
+
+(defn todos-as-transacoes [db]
+  (d/q '[:find (pull ?transacao [*])
+         :where [?transacao :transacao/valor]]
        db))
 
 (defn uuid [] (java.util.UUID/randomUUID))
@@ -152,10 +169,10 @@
    (novo-cliente (uuid) nome cpf email))
 
   ([uuid nome cpf email]
-   {:cliente/id     uuid
-    :cliente/nome   nome
-    :cliente/cpf    cpf
-    :cliente/email  email})
+   {:cliente/id    uuid
+    :cliente/nome  nome
+    :cliente/cpf   cpf
+    :cliente/email email})
 
   ([uuid nome cpf email cartao]
    {:cliente/id     uuid
@@ -200,17 +217,38 @@
 ;{:data (local-date-time 2021 10 20), :valor 1000, :estabelecimento "Adidas",       :categoria "Vestuário"   }
 (defn nova-transacao
   ([data valor estabelecimento categoria]
-   {:transacao/data            data
+   {:transacao/id              cartao
+    :transacao/data            data
     :transacao/valor           valor
     :transacao/estabelecimento estabelecimento
     :transacao/categoria       categoria}))
 
 
-(def cliente      (novo-cliente (uuid), "Nyelson Barbosa", "22667862023", "nyelson.barbosa@nubank.com.br"))
-(def cartao       (novo-cartao "5410133996442556", "984", (sql-date (local-date-time 2022 10 20)), 10000.00M))
-(def transacao    (nova-transacao (sql-date (local-date-time 2021 03 12)), 100.00M, "Adidas", "Vestuário"))
+(def cliente (novo-cliente (uuid), "Nyelson Barbosa", "22667862023", "nyelson.barbosa@nubank.com.br"))
+(def cartao (novo-cartao "5410133996442556", "984", (sql-date (local-date-time 2022 10 20)), 10000.00M))
+(def transacao (nova-transacao (sql-date (local-date-time 2021 03 12)), 100.00M, "Adidas", "Vestuário"))
 
-(pprint (adiciona-clientes! conn [cliente, cartao, transacao]))
-(pprint @(d/transact conn [cliente]))
+(pprint @(adiciona-clientes! conn [cliente, cartao]))
+
+(def clientes (todos-os-clientes (d/db conn)))
+(def primeiro-cliente-id (-> clientes
+                             first
+                             first
+                             :db/id))
+(println "O id do primeiro cliente é" primeiro-cliente-id)
+
+(pprint (adiciona-cartao! conn primeiro-cliente-id cartao))
+
+(def cartoes (todos-os-cartoes (d/db conn)))
+(def primeiro-cartao-id (-> cartoes
+                             first
+                             first
+                             :db/id))
+(println "O id do primeiro cartao é" primeiro-cartao-id)
+
+
 
 (pprint (todos-os-clientes (d/db conn)))
+;(pprint (todos-os-cartoes (d/db conn)))
+;(pprint (todos-as-transacoes (d/db conn)))
+(d/delete-database db-uri)
